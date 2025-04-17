@@ -14,10 +14,10 @@ const sqlite_db = require("sqlite3");
 // We use this pool to interact with our database, for all our queries in our project.
 // We're told if our app connected to our database or if any errors occurred.
 const connection_pool = new sqlite_db.Database("Databases/my-database-cw1.db", () => {
-    console.log(">  Hello World! The Sequel");
+    console.log(">  Our app successfully connected to our SQLite database");
 })
 .on("error", function(error_connect) {
-    console.log(">  Error! The Sequel");
+    console.log(">  Error! Our app failed to connect to our SQLite database");
 });
 
 

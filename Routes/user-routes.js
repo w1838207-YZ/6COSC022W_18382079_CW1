@@ -15,19 +15,19 @@ const user_router = express.Router();
 // Its functions handle business logic linked to user accounts on our app.
 const {user_service} = require("../Services/user-service");
 
-// We import a middleware function we created in a relevant folder.
-// It checks whether a user has a session active (i.e. after logging into an account).
-const {check_session} = require("../Middleware/session-middleware");
+// We import a utility function we created in a relevant folder elsewhere.
+// It lets specialised responses be made, based on the structure we defined.
+const {create_response} = require("../Utilities/create-response");
 
 
 
 
-//
-//
+// We design a route for a HTTP 'Get' request.
+// We call it to load an EJS view in a browser, for a register page.
 user_router.get("/register", async(request_object,response_object) => {
-
-    //
-    response_object.render("register");
+    
+    // The route's response is used to display said view on the screen.
+    response_object.render("view-register");
 
 });
 
@@ -41,76 +41,97 @@ user_router.post("/register", async(request_object,response_object) => {
     // We make an instance of the imported user service, via its constructor.
     this.user_service = new user_service();
 
-    // We run a service operation to try and register a new user account into our app's database, using supplied credentials.
-    const result_object = await this.user_service.register(request_object);
+    // Our app tries to create a new account with the related service operation.
+    try {
+        const result_object = await this.user_service.register(request_object);
+        response_object.status(201).json(result_object);
+    }
 
-    // We return a response to the above operation in JSON format.
-    response_object.json(result_object);
+    // If an error occurs, it is caught & safely presented via a custom response.
+    catch (error_register) {
+        const error_string = error_register.message;
+        const error_code = Number(error_string.split(">>")[0]);
+        const error_details = error_string.split(">>")[1];
+        const response_error = await create_response(false,null,error_details);
+        if (error_code===500) {
+            response_object.status(500).json(response_error);
+        }
+        else if (error_code===401) {
+            response_object.status(401).json(response_error);
+        };
+    };
 
 });
 
 
 
 
-//
-//
-user_router.get("/login", async(request_object,response_object) => {});
+// We design a 'Get' route, which loads an EJS view for a login page.
+// Unfortunately for this submission, the view is not implemented fully.
+user_router.get("/login", async(request_object,response_object) => {
+    
+    // The route's response is used to display said view on the screen.
+    response_object.render("view-login");
+
+});
 
 
 
 
 // We design a route for a HTTP 'Post' request.
-// We call it when a user tries to logo into our app with an existing account.
+// We call it when a user tries to log into our app with an existing account.
 user_router.post("/login", async(request_object,response_object) => {
 
     // We make an instance of the imported user service, via its constructor.
     this.user_service = new user_service();
 
-    // We run a service operation to try and log a user into an existing account stored on our app's database, using supplied credentials.
-    const result_object = await this.user_service.login(request_object);
+    // Our app tries to log a user into an account with the related service operation.
+    try {
+        const result_object = await this.user_service.login(request_object);
+        response_object.status(200).json(result_object);
+    }
 
-    // We return a response to the above operation in JSON format.
-    response_object.json(result_object);
+    // If an error occurs, it is caught & safely presented via a custom response.
+    catch (error_login) {
+        const error_string = error_login.message;
+        const error_code = Number(error_string.split(">>")[0]);
+        const error_details = error_string.split(">>")[1];
+        const response_error = await create_response(false,null,error_details);
+        if (error_code===500) {
+            response_object.status(500).json(response_error);
+        }
+        else if (error_code===401) {
+            response_object.status(401).json(response_error);
+        };
+    };
 
 });
 
 
 
 
-// We set a route for a HTTP 'Get' request.
-// We also protect said route via a session middleware function.
-// We call it to test whether a user session works after its activation.
-user_router.get("/testSession", check_session, async(request_object,response_object) => {
-    // We receive a JSON response only after our route's operation passes through the middleware function (i.e. only after confirming an active session exists).
-    response_object.json("User is logged in and authenticated");
+// We design a 'Get' route, which loads an EJS view for a dashboard page.
+// Unfortunately for this submission, the view is not implemented fully.
+user_router.get("/dashboard", async(request_object,response_object) => {
+    
+    // The route's response is used to display said view on the screen.
+    response_object.render("view-dashboard");
+
 });
 
 
 
 
-//
-//
-user_router.get("/dashboard", check_session, async(request_object,response_object) => {});
+// This skeleton is for a 'Post' route, which would have been used for the dashboard.
+// However it is unimplemented in this submission, and so does nothing.
+user_router.post("/dashboard", async(request_object,response_object) => {});
 
-
-
-
-//
-//
-user_router.post("/dashboard", check_session, async(request_object,response_object) => {});
-
-
-
-
-//
-//
+// We design a 'Get' route, which would have been used when a user tries logging out.
+// However it is unimplemented in this submission, and so does nothing.
 user_router.get("/logout", async(request_object,response_object) => {});
 
-
-
-
-//
-//
+// We design a 'Post' route, which would have been used when a user tries logging out.
+// However it is unimplemented in this submission, and so does nothing.
 user_router.post("/logout", async(request_object,response_object) => {});
 
 

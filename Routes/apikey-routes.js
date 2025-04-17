@@ -12,16 +12,16 @@ const express = require("express");
 const apikey_router = express.Router();
 
 // We import a required service we created in a relevant folder elsewhere.
-// Its functions handle business logic linked to .
+// Its functions handle business logic linked to API keys within our app.
 const {apikey_service} = require("../Services/apikey-service");
+
+// We import a utility function we created in a relevant folder elsewhere.
+// It lets specialised responses be made, based on the structure we defined.
+const {create_response} = require("../Utilities/create-response");
 
 // We import a middleware function we created in a relevant folder.
 // It checks whether a user has a session active (i.e. after logging into an account).
 const {check_session} = require("../Middleware/session-middleware");
-
-// We import a middleware function we created in a relevant folder.
-// It checks if an API key is included in a request and authenticates it for validity.
-const {authenticate_apikey} = require("../Middleware/authenticate-apikey");
 
 
 
@@ -34,11 +34,25 @@ apikey_router.post("/generate", check_session, async(request_object,response_obj
     // We make an instance of the imported API key service, via its constructor.
     this.apikey_service = new apikey_service();
 
-    // We run a service operation to try and generate an API key for a user, that is associated with an existing account that they are logged in with.
-    const result_object = await this.apikey_service.generate(request_object);
+    // Our app tries making a new API key for a user via a related service operation.
+    try {
+        const result_object = await this.apikey_service.generate(request_object.session.user.id);
+        response_object.status(201).json(result_object);
+    }
 
-    // We return a response to the above operation in JSON format.
-    response_object.json(result_object);
+    // If an error occurs, it is caught & safely presented via a custom response.
+    catch (error_generate) {
+        const error_string = error_generate.message;
+        const error_code = Number(error_string.split(">>")[0]);
+        const error_details = error_string.split(">>")[1];
+        const response_error = await create_response(false,null,error_details);
+        if (error_code===500) {
+            response_object.status(500).json(response_error);
+        }
+        else if (error_code===401) {
+            response_object.status(401).json(response_error);
+        };
+    }
 
     // The route operations run only after we pass through the above middleware (i.e. an active session is found to exist).
 
@@ -47,13 +61,9 @@ apikey_router.post("/generate", check_session, async(request_object,response_obj
 
 
 
-// We design a route for a HTTP 'Get' request.
-// We also protect said route via an API key middleware function. 
-// We call it to test via authentication whether an API key (if included) is valid.
-apikey_router.get("/test", authenticate_apikey, async(request_object,response_object) => {
-    // We receive a JSON response only after our route's operation passes through the middleware function (i.e. after authentication finds a featured API key is valid).
-    response_object.json("Route has been validated and Key is valid");
-});
+// This skeleton is for a 'Put' route. It would have been used to activate an API key.
+// However it is unimplemented in this submission, and so does nothing.
+apikey_router.put("/activate/:id?", check_session, async(request_object,response_object) => {});
 
 
 
